@@ -1,21 +1,29 @@
 // MP3 players
-var revIdlePlayer = new Tone.Player("./idle2.mp3").toMaster()
-var revUpPlayer = new Tone.Player("./accel.mp3").toMaster()
+var revIdlePlayer = new Tone.Player("./idle3.mp3").toMaster()
+var revUpPlayer = new Tone.Player("./accel3.mp3").toMaster()
 var revDownPlayer = new Tone.Player("./decel.mp3").toMaster()
 
-revUpPlayer.volume.value = 2
+revUpPlayer.volume.value = 6
 revDownPlayer.volume.value = 2
+revIdlePlayer.volume.value = -6
 
 // Timing
 var ctx = new Tone.Context()
 var elapsedTimeSincePedalDown = 0
 var elapsedTimeSincePedalUp = 0
+var counter = 0
+console.log(counter)
 
 // Remember keys pressed
 var keysdown = {}
 
+// Loop accel sounds
+revUpPlayer.setLoopPoints(5, 8);
+revUpPlayer.loop = true;
+
 // Play revIdlePlayer
 revIdlePlayer.autostart = true
+revIdlePlayer.setLoopPoints(3, 8);
 revIdlePlayer.loop = true
 
 // On pedal down
@@ -39,15 +47,16 @@ $("body").keydown(function(e) {
 		$("#startTime").text(elapsedTimeSincePedalUp + " seconds")
 
 		// start rev up sounds from time when pedal went up or from start
-		if (elapsedTimeSincePedalUp > 0 && elapsedTimeSincePedalUp < 9.4) {
+		if (elapsedTimeSincePedalUp > 0 && elapsedTimeSincePedalUp < 9.8 && counter > 0) {
 			
 			// stop rev down sounds
 			revDownPlayer.stop()
 
-			revUpPlayer.start(0) // should start when pedal was last pressed
+			revUpPlayer.start(ctx.now(), 0) // should start when pedal was last pressed
 			console.log("in")
 		} else {
-			revUpPlayer.start(0)
+			revUpPlayer.start(ctx.now(), 0)
+			counter++
 		}
 		elapsedTimeSincePedalDown = ctx.now()
 		console.log("Pressing pedal down at: " + elapsedTimeSincePedalDown)
@@ -72,7 +81,7 @@ $("body").keyup(function(e) {
 			revIdlePlayer.start(ctx.now() + 6.5) 
 		} else {
 			revDownPlayer.start(ctx.now(), 6.5 - elapsedTimeSincePedalDown) // should start when pedal was let go
-			revIdlePlayer.start(ctx.now() + elapsedTimeSincePedalDown)
+			revIdlePlayer.start(ctx.now() + elapsedTimeSincePedalDown - 0.5)
 		}
 		elapsedTimeSincePedalUp = ctx.now()
 		console.log("Pedal let go at: " + elapsedTimeSincePedalUp)
