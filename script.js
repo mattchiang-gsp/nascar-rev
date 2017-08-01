@@ -1,4 +1,5 @@
 // MP3 players
+var revIdlePlayer = new Tone.Player("./rev-idle.mp3").toMaster()
 var revUpPlayer = new Tone.Player("./rev-up.mp3").toMaster()
 var revDownPlayer = new Tone.Player("./rev-down.mp3").toMaster()
 
@@ -9,6 +10,10 @@ var elapsedTimeSinceDown
 
 // Remember keys pressed
 var keysdown = {}
+
+// Play revIdlePlayer
+revIdlePlayer.autostart = true
+revIdlePlayer.loop = true
 
 // On pedal down
 $("body").keydown(function(e) {
@@ -23,6 +28,10 @@ $("body").keydown(function(e) {
 
 
 	if (e.keyCode == 66) { // 66 = 'b'
+
+		// stop idle sounds
+		revIdlePlayer.stop()
+
 		// stop rev down sounds
 		elapsedTimeSinceDown = ctx.now() - elapsedTimeSinceDown
 		console.log("Pedal was up for: " + elapsedTimeSinceDown)
@@ -42,6 +51,7 @@ $("body").keydown(function(e) {
 // On pedal up
 $("body").keyup(function(e) {
 	if (e.keyCode == 66) { // 66 = 'b'
+
 		// Stop the rev up sounds
 		elapsedTimeSinceUp = ctx.now() - elapsedTimeSinceUp
 		$("#stopwatch").text(elapsedTimeSinceUp)
@@ -52,6 +62,9 @@ $("body").keyup(function(e) {
 		elapsedTimeSinceDown = ctx.now()
 		revDownPlayer.start(0, 11 - elapsedTimeSinceUp)
 		console.log("Pedal let go at: " + elapsedTimeSinceDown)
+
+		// Start the idle sounds when rev down ends
+		revIdlePlayer.start(ctx.now() + (11 - (11 - elapsedTimeSinceUp)))		
 	}
 	delete keysdown[e.keyCode]
 })
