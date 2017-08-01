@@ -1,12 +1,15 @@
 // MP3 players
-var revIdlePlayer = new Tone.Player("./rev-idle.mp3").toMaster()
-var revUpPlayer = new Tone.Player("./rev-up.mp3").toMaster()
-var revDownPlayer = new Tone.Player("./rev-down.mp3").toMaster()
+var revIdlePlayer = new Tone.Player("./idle2.mp3").toMaster()
+var revUpPlayer = new Tone.Player("./accel.mp3").toMaster()
+var revDownPlayer = new Tone.Player("./decel.mp3").toMaster()
+
+revUpPlayer.volume.value = 2
+revDownPlayer.volume.value = 2
 
 // Timing
 var ctx = new Tone.Context()
-var elapsedTimeSinceUp
-var elapsedTimeSinceDown
+var elapsedTimeSincePedalDown = 0
+var elapsedTimeSincePedalUp = 0
 
 // Remember keys pressed
 var keysdown = {}
@@ -26,25 +29,28 @@ $("body").keydown(function(e) {
 	// Remember the pedal is pressed
 	keysdown[e.keyCode] = true
 
-
 	if (e.keyCode == 66) { // 66 = 'b'
 
 		// stop idle sounds
 		revIdlePlayer.stop()
 
-		// stop rev down sounds
-		elapsedTimeSinceDown = ctx.now() - elapsedTimeSinceDown
-		console.log("Pedal was up for: " + elapsedTimeSinceDown)
-		revDownPlayer.stop()
+		// How many seconds was the pedal up for?
+		elapsedTimeSincePedalUp = ctx.now() - elapsedTimeSincePedalUp
+		$("#startTime").text(elapsedTimeSincePedalUp + " seconds")
 
-		// start rev up sounds at 0 or where we left off
-		if (elapsedTimeSinceDown > 0 && elapsedTimeSinceDown < 11) {
-			revUpPlayer.start(11 - elapsedTimeSinceDown)
+		// start rev up sounds from time when pedal went up or from start
+		if (elapsedTimeSincePedalUp > 0 && elapsedTimeSincePedalUp < 9.4) {
+			
+			// stop rev down sounds
+			revDownPlayer.stop()
+
+			revUpPlayer.start(0) // should start when pedal was last pressed
+			console.log("in")
 		} else {
 			revUpPlayer.start(0)
 		}
-		elapsedTimeSinceUp = ctx.now()
-		console.log("Pressing pedal down at: " + elapsedTimeSinceUp)
+		elapsedTimeSincePedalDown = ctx.now()
+		console.log("Pressing pedal down at: " + elapsedTimeSincePedalDown)
 	}
 })
 
@@ -52,19 +58,25 @@ $("body").keydown(function(e) {
 $("body").keyup(function(e) {
 	if (e.keyCode == 66) { // 66 = 'b'
 
-		// Stop the rev up sounds
-		elapsedTimeSinceUp = ctx.now() - elapsedTimeSinceUp
-		$("#stopwatch").text(elapsedTimeSinceUp)
-		console.log("Pedal pressed for: " + elapsedTimeSinceUp)
+		// How many seconds was the pedal down for?
+		elapsedTimeSincePedalDown = ctx.now() - elapsedTimeSincePedalDown
+		$("#stopwatch").text(elapsedTimeSincePedalDown + " seconds")
+
+		// Stop the acceleration sound
 		revUpPlayer.stop()
 
 		// And start rev down sounds at the correct time
-		elapsedTimeSinceDown = ctx.now()
-		revDownPlayer.start(0, 11 - elapsedTimeSinceUp)
-		console.log("Pedal let go at: " + elapsedTimeSinceDown)
+		if (elapsedTimeSincePedalDown > 6.5) {
+			revDownPlayer.start(0) // start from the beginning
+			// Start the idle sounds when rev down ends
+			revIdlePlayer.start(ctx.now() + 6.5) 
+		} else {
+			revDownPlayer.start(ctx.now(), 6.5 - elapsedTimeSincePedalDown) // should start when pedal was let go
+			revIdlePlayer.start(ctx.now() + elapsedTimeSincePedalDown)
+		}
+		elapsedTimeSincePedalUp = ctx.now()
+		console.log("Pedal let go at: " + elapsedTimeSincePedalUp)
 
-		// Start the idle sounds when rev down ends
-		revIdlePlayer.start(ctx.now() + (11 - (11 - elapsedTimeSinceUp)))		
 	}
 	delete keysdown[e.keyCode]
 })
