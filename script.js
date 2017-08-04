@@ -9,16 +9,16 @@ revIdlePlayer.volume.value = -6
 
 // Timing
 var ctx = new Tone.Context()
-var elapsedTimeSincePedalDown = 0
-var elapsedTimeSincePedalUp = 0
-var counter = 0
+var elapsedTimeSincePedalDown = 0 // foot on gas
+var elapsedTimeSincePedalUp = 0 // foot off gas
+var counter = 1
 console.log(counter)
 
 // Remember keys pressed
 var keysdown = {}
 
 // Loop accel sounds
-revUpPlayer.setLoopPoints(5, 8);
+revUpPlayer.setLoopPoints(5, 10);
 revUpPlayer.loop = true;
 
 // Play revIdlePlayer
@@ -41,23 +41,47 @@ $("body").keydown(function(e) {
 
 		// stop idle sounds
 		revIdlePlayer.stop()
+		revDownPlayer.stop()
 
 		// How many seconds was the pedal up for?
 		elapsedTimeSincePedalUp = ctx.now() - elapsedTimeSincePedalUp
 		$("#startTime").text(elapsedTimeSincePedalUp + " seconds")
 
 		// start rev up sounds from time when pedal went up or from start
-		if (elapsedTimeSincePedalUp > 0 && elapsedTimeSincePedalUp < 9.8 && counter > 0) {
-			
-			// stop rev down sounds
-			revDownPlayer.stop()
-
-			revUpPlayer.start(ctx.now(), 0) // should start when pedal was last pressed
-			console.log("in")
-		} else {
+		// start on the right place depends on previous foot on gas pedal time + time off pedal
+		if (counter > 0) { // first time revving up
 			revUpPlayer.start(ctx.now(), 0)
 			counter++
+		} 
+		else if (elapsedTimeSincePedalDown > 7) { // if we were going fast speed
+			// if foot was off for more than 6 seconds, start accel from the beginning
+			if (elapsedTimeSincePedalUp > 6) {
+				revUpPlayer.start(ctx.now(), 0)
+			}
+			// if foot was off between 3-6 seconds, start accel from a little after the beginning
+			else if (elapsedTimeSincePedalUp > 3) {
+				revUpPlayer.start(ctx.now(), 3)
+			}
+			// if foot was off between 0-3 seconds, start accel from the middle
+			else {
+				revUpPlayer.start(ctx.now(), 7)
+			}
+		} else if (elapsedTimeSincePedalDown > 3) { // if we were going medium speed
+			if (elapsedTimeSincePedalUp > 4) {
+				revUpPlayer.start(ctx.now(), 0)
+			} else if (elapsedTimeSincePedalUp > 2) {
+				revUpPlayer.start(ctx.now(), 1.5)
+			} else {
+				revUpPlayer.start(ctx.now(), 3)
+			}
+		} else { // if we were starting up speed
+			if (elapsedTimeSincePedalUp > 2) {
+				revUpPlayer.start(ctx.now(), 0)
+			} else {
+				revUpPlayer.start(ctx.now(), 1)
+			}
 		}
+
 		elapsedTimeSincePedalDown = ctx.now()
 		console.log("Pressing pedal down at: " + elapsedTimeSincePedalDown)
 	}
@@ -74,15 +98,21 @@ $("body").keyup(function(e) {
 		// Stop the acceleration sound
 		revUpPlayer.stop()
 
-		// And start rev down sounds at the correct time
-		if (elapsedTimeSincePedalDown > 6.5) {
+		// Play rev down sounds that fit 
+		if (elapsedTimeSincePedalDown > 7) { // if foot on the gas was more than 7 seconds
 			revDownPlayer.start(0) // start from the beginning
-			// Start the idle sounds when rev down ends
 			revIdlePlayer.start(ctx.now() + 6.5) 
-		} else {
-			revDownPlayer.start(ctx.now(), 6.5 - elapsedTimeSincePedalDown) // should start when pedal was let go
-			revIdlePlayer.start(ctx.now() + elapsedTimeSincePedalDown - 0.5)
+		} else if (elapsedTimeSincePedalDown > 3) { // if foot on the gas was 3-7 seconds
+			revDownPlayer.start(ctx.now(), 2) 
+			revIdlePlayer.start(ctx.now() + 4.5)
+		} else if (elapsedTimeSincePedalDown > 1) { // if foot on the gas was 1-3 seconds
+			revDownPlayer.start(ctx.now(), 4) 
+			revIdlePlayer.start(ctx.now() + 2.5)
+		} else { // if foot on gas was less than 1 second
+			revDownPlayer.start(ctx.now(), 5.5) 
+			revIdlePlayer.start(ctx.now() + 1)
 		}
+
 		elapsedTimeSincePedalUp = ctx.now()
 		console.log("Pedal let go at: " + elapsedTimeSincePedalUp)
 
