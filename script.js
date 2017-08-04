@@ -12,7 +12,6 @@ var ctx = new Tone.Context()
 var elapsedTimeSincePedalDown = 0 // foot on gas
 var elapsedTimeSincePedalUp = 0 // foot off gas
 var counter = 1
-console.log(counter)
 
 // Remember keys pressed
 var keysdown = {}
@@ -51,34 +50,43 @@ $("body").keydown(function(e) {
 		// start on the right place depends on previous foot on gas pedal time + time off pedal
 		if (counter > 0) { // first time revving up
 			revUpPlayer.start(ctx.now(), 0)
-			counter++
+			counter--
+			console.log(counter)
 		} 
 		else if (elapsedTimeSincePedalDown > 7) { // if we were going fast speed
 			// if foot was off for more than 6 seconds, start accel from the beginning
 			if (elapsedTimeSincePedalUp > 6) {
 				revUpPlayer.start(ctx.now(), 0)
+				console.log("High speed, let go for a long time")
 			}
 			// if foot was off between 3-6 seconds, start accel from a little after the beginning
 			else if (elapsedTimeSincePedalUp > 3) {
 				revUpPlayer.start(ctx.now(), 3)
+				console.log("High speed, let go for a medium time")
 			}
 			// if foot was off between 0-3 seconds, start accel from the middle
 			else {
 				revUpPlayer.start(ctx.now(), 7)
+				console.log("High speed, let go for little time")
 			}
 		} else if (elapsedTimeSincePedalDown > 3) { // if we were going medium speed
 			if (elapsedTimeSincePedalUp > 4) {
 				revUpPlayer.start(ctx.now(), 0)
+				console.log("Medium speed, let go for a long time")
 			} else if (elapsedTimeSincePedalUp > 2) {
 				revUpPlayer.start(ctx.now(), 1.5)
+				console.log("Medium speed, let go for a medium time")
 			} else {
 				revUpPlayer.start(ctx.now(), 3)
+				console.log("Medium speed, let go for little time")
 			}
 		} else { // if we were starting up speed
 			if (elapsedTimeSincePedalUp > 2) {
 				revUpPlayer.start(ctx.now(), 0)
+				console.log("Starting up, let go for a while")
 			} else {
 				revUpPlayer.start(ctx.now(), 1)
+				console.log("Starting up, let go for little time")
 			}
 		}
 
