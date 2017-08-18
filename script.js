@@ -1,6 +1,13 @@
+// MPH settings
+var $body = $("body")
+var number = 0
+var isDown = 0
+var delay = 250
+var nextTime = 0
+
 // MP3 players
 var revIdlePlayer = new Tone.Player("./idle3.mp3").toMaster()
-var revUpPlayer = new Tone.Player("./accel3.mp3").toMaster()
+var revUpPlayer = new Tone.Player("./accel4.mp3").toMaster()
 var revDownPlayer = new Tone.Player("./decel.mp3").toMaster()
 
 revUpPlayer.volume.value = 6
@@ -17,7 +24,7 @@ var counter = 1
 var keysdown = {}
 
 // Loop accel sounds
-revUpPlayer.setLoopPoints(5, 10);
+revUpPlayer.setLoopPoints(26, 29);
 revUpPlayer.loop = true;
 
 // Play revIdlePlayer
@@ -25,9 +32,25 @@ revIdlePlayer.autostart = true
 revIdlePlayer.setLoopPoints(3, 8);
 revIdlePlayer.loop = true
 
-// On pedal down
-$("body").keydown(function(e) {
+// requestAnimationFrame(watcher)
 
+// function watcher(time) {
+// 	console.log(isDown)
+// 	requestAnimationFrame(watcher)
+// 	if (time < nextTime) {
+// 		return
+// 	}
+// 	nextTime = time + delay
+// 	if (isDown != 0 && (number + isDown) >= 0) { // Stop at 0 mph
+// 		number += isDown
+// 		$("#result").text(number)
+// 		console.log(number)
+// 	}
+// }
+
+// On pedal down
+$body.keydown(function(e) {
+	
 	// Is key/pedal already down?
 	if (keysdown[e.keyCode]) {
 		return
@@ -35,6 +58,7 @@ $("body").keydown(function(e) {
 
 	// Remember the pedal is pressed
 	keysdown[e.keyCode] = true
+	isDown = 1
 
 	if (e.keyCode == 66) { // 66 = 'b'
 
@@ -53,7 +77,7 @@ $("body").keydown(function(e) {
 			counter--
 			console.log(counter)
 		} 
-		else if (elapsedTimeSincePedalDown > 7) { // if we were going fast speed
+		else if (elapsedTimeSincePedalDown > 18) { // if we were going fast speed
 			// if foot was off for more than 6 seconds, start accel from the beginning
 			if (elapsedTimeSincePedalUp > 6) {
 				revUpPlayer.start(ctx.now(), 0)
@@ -69,7 +93,7 @@ $("body").keydown(function(e) {
 				revUpPlayer.start(ctx.now(), 7)
 				console.log("High speed, let go for little time")
 			}
-		} else if (elapsedTimeSincePedalDown > 3) { // if we were going medium speed
+		} else if (elapsedTimeSincePedalDown > 11) { // if we were going medium speed
 			if (elapsedTimeSincePedalUp > 4) {
 				revUpPlayer.start(ctx.now(), 0)
 				console.log("Medium speed, let go for a long time")
@@ -99,6 +123,8 @@ $("body").keydown(function(e) {
 $("body").keyup(function(e) {
 	if (e.keyCode == 66) { // 66 = 'b'
 
+		isDown = -1
+
 		// How many seconds was the pedal down for?
 		elapsedTimeSincePedalDown = ctx.now() - elapsedTimeSincePedalDown
 		$("#stopwatch").text(elapsedTimeSincePedalDown + " seconds")
@@ -107,13 +133,13 @@ $("body").keyup(function(e) {
 		revUpPlayer.stop()
 
 		// Play rev down sounds that fit 
-		if (elapsedTimeSincePedalDown > 7) { // if foot on the gas was more than 7 seconds
+		if (elapsedTimeSincePedalDown > 18) { // if foot on the gas was more than 7 seconds
 			revDownPlayer.start(0) // start from the beginning
 			revIdlePlayer.start(ctx.now() + 6.5) 
-		} else if (elapsedTimeSincePedalDown > 3) { // if foot on the gas was 3-7 seconds
+		} else if (elapsedTimeSincePedalDown > 11) { // if foot on the gas was 3-7 seconds
 			revDownPlayer.start(ctx.now(), 2) 
 			revIdlePlayer.start(ctx.now() + 4.5)
-		} else if (elapsedTimeSincePedalDown > 1) { // if foot on the gas was 1-3 seconds
+		} else if (elapsedTimeSincePedalDown > 3) { // if foot on the gas was 1-3 seconds
 			revDownPlayer.start(ctx.now(), 4) 
 			revIdlePlayer.start(ctx.now() + 2.5)
 		} else { // if foot on gas was less than 1 second
