@@ -74,10 +74,11 @@ $body.keydown(function(e) {
 		// start on the right place depends on previous foot on gas pedal time + time off pedal
 		if (counter > 0) { // first time revving up
 			revUpPlayer.start(ctx.now(), 0)
-			counter--
+			// Uncomment = enable complex 2nd revving. Comment = start from beginning every time you press the pedal
+			// counter--
 			console.log(counter)
 		} 
-		else if (elapsedTimeSincePedalDown > 18) { // if we were going fast speed
+		else if (elapsedTimeSincePedalDown > 18) { // if we were going gear 4
 			// if foot was off for more than 6 seconds, start accel from the beginning
 			if (elapsedTimeSincePedalUp > 6) {
 				revUpPlayer.start(ctx.now(), 0)
@@ -85,23 +86,34 @@ $body.keydown(function(e) {
 			}
 			// if foot was off between 3-6 seconds, start accel from a little after the beginning
 			else if (elapsedTimeSincePedalUp > 3) {
-				revUpPlayer.start(ctx.now(), 3)
+				revUpPlayer.start(ctx.now(), 5)
 				console.log("High speed, let go for a medium time")
 			}
 			// if foot was off between 0-3 seconds, start accel from the middle
 			else {
-				revUpPlayer.start(ctx.now(), 7)
+				revUpPlayer.start(ctx.now(), 11)
 				console.log("High speed, let go for little time")
 			}
-		} else if (elapsedTimeSincePedalDown > 11) { // if we were going medium speed
+		} else if (elapsedTimeSincePedalDown > 11) { // if we were going gear 3
 			if (elapsedTimeSincePedalUp > 4) {
 				revUpPlayer.start(ctx.now(), 0)
 				console.log("Medium speed, let go for a long time")
 			} else if (elapsedTimeSincePedalUp > 2) {
-				revUpPlayer.start(ctx.now(), 1.5)
+				revUpPlayer.start(ctx.now(), 5)
 				console.log("Medium speed, let go for a medium time")
 			} else {
+				revUpPlayer.start(ctx.now(), 11)
+				console.log("Medium speed, let go for little time")
+			}
+		} else if (elapsedTimeSincePedalDown > 5) { // if we were going gear 2
+			if (elapsedTimeSincePedalUp > 3) {
+				revUpPlayer.start(ctx.now(), 0)
+				console.log("Medium speed, let go for a long time")
+			} else if (elapsedTimeSincePedalUp > 1.5) {
 				revUpPlayer.start(ctx.now(), 3)
+				console.log("Medium speed, let go for a medium time")
+			} else {
+				revUpPlayer.start(ctx.now(), 5)
 				console.log("Medium speed, let go for little time")
 			}
 		} else { // if we were starting up speed
@@ -109,7 +121,7 @@ $body.keydown(function(e) {
 				revUpPlayer.start(ctx.now(), 0)
 				console.log("Starting up, let go for a while")
 			} else {
-				revUpPlayer.start(ctx.now(), 1)
+				revUpPlayer.start(ctx.now(), 3)
 				console.log("Starting up, let go for little time")
 			}
 		}
